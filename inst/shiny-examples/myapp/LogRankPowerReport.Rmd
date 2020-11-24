@@ -1,0 +1,184 @@
+
+
+
+```{r library, echo = FALSE,comment = "",warning = FALSE,message = FALSE}
+
+
+
+library(shiny)
+
+library(knitr)
+
+library(rmarkdown)
+
+library(kableExtra)
+
+library(extraDistr)
+
+
+
+options(scipen = 3)
+
+#options(knitr.table.format  =  "latex")
+
+```
+
+
+
+
+
+```{r set-options, echo = FALSE, cache = FALSE}
+
+options(width = 60)
+
+opts_chunk$set(comment  =  "", warning  =  FALSE, message  =  FALSE, echo  =  TRUE, tidy  =  FALSE, size = "small",fig.height = 5)
+
+
+
+```
+
+
+
+
+
+
+
+```{r output type, echo = FALSE, cache = FALSE}
+
+output_type <- switch(opts_knit$get("rmarkdown.pandoc.to"),
+
+                      docx = 'pandoc',
+
+                      latex = 'latex',
+
+                      html = 'html'
+
+)
+
+```
+
+# Summary 
+
+
+  This is a two-arm randomized trial with survival as primary endpoint. 
+ The study includes an enrollment time of  `r input$time.accrual` 
+ months and a follow-up time of at least `r input$time.followup` months per patient. 
+ The primary hypothesis is that the treatment will yield an improved median
+ survival time of `r input$medH1 - input$medH0` months compared to the
+ control group of a `r input$medH0`-month median survival time.   The control group has `r input$n0 `
+ patients and the treatment group has `r input$n1` for a total of `r input$n0 + input$n1` patients.
+ 	The proposed design with n = `r input$n0` per group will achieve
+ `r sum(I(outcomesdata()[[2]]$sctest.pvalue<0.05))/input$n.sim` power to detect a hazard ratio (HR)
+ of `r round(input$medH0/input$medH1,3) ` controlled at a one-sided `r (1-as.numeric(input$con.CI))*100`% type I error based on log-rank test.
+ If the treatment is effective with an effect size of HR = `r round(input$medH0/input$medH1,3)` (i.e., alternative 
+ hypothesis is true) the estimated median HR will be on the target, `r round(input$medH0/input$medH1,3) `, 
+ with one-sided 95% confidence interval (95% CI) of `r round(quantile(round(outcomesdata()[[2]]$HRnum,5), probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$HRnum,5), probs = c(0.975)),2)`. 
+ The significant HR (log-rank p<0.05) ranges from 
+ `r round(min(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05]),2)`
+ to `r round(max(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05]),2) `.
+ HR and p value are highly correlated with low HR in small p value spectrum (r = `r round(cor((outcomesdata()[[2]]$coef), log(outcomesdata()[[2]]$sctest.pvalue)), 2)` in logarithm scale).  
+ 
+ Distribution of median survival time (95% CI) is `r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.975)),2)` months with median value of `r input$medH0`  months in the control group and `r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.025)),2)`- `r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.975)),2)` months with median value of `r input$medH1` months in the treatment group.
+ The 95% CI of median survival ratio is `r round(quantile(round(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median,5), probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median,5), probs = c(0.975)),2)`, with median value of `r round(summary(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median)[3],2)`. For significant cases with log-rank p < 0.05, the range of median survival time of control and treatment groups and median survival ratio is `r round(min(outcomesdata()[[2]]$C_median),2)` to `r round(max(outcomesdata()[[2]]$C_median),2)` months,
+ `r round(min(outcomesdata()[[2]]$T_median),2)` to `r round(max(outcomesdata()[[2]]$T_median),2)` months, and 
+ `r round(min(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median),2)`
+ to `r round(max(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median),2)`, respectively.
+ Median survival ratio is also positively correlated with
+ HR, with a lower median survival ratio corresponds to a lower HR ( r =
+ `r round(cor( outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median, outcomesdata()[[2]]$HRnum), 2)`).
+
+`r ifelse(I(NROW(outcomesdata()[[2]] %>% filter(sctest.pvalue<0.05 & ratiomed>1)) > 0), paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Close examination indicates most cases show \n treatment delay effect", sep = "")  , if(numberoutliers()>0){         paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Yet none are significant at the alpha = ",1-as.numeric(input$con.CI)," level", sep = "")  } else {paste(" ", sep = "")})`
+
+
+ 
+```{r boxplot, echo=FALSE}
+        
+        if(FALSE){
+          
+         par(mfrow=c(1,2))
+          boxplot(outcomesdata()[[2]]$exp.coef., ylab = "HR", main = "Fig 1a. Distribution of HR under H1", cex.main = .65, 
+                  ylim = c(min(outcomesdata()[[2]]$exp.coef.),max(outcomesdata()[[2]]$exp.coef.)))
+          boxplot(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05], ylab = "HR (p < 0.05)", 
+                  main = "Fig 1b. Distribution of Significant HR under H1", cex.main = .65, 
+                  ylim = c(min(outcomesdata()[[2]]$exp.coef.),max(outcomesdata()[[2]]$exp.coef.)))
+        } else {
+          
+          par(mfrow=c(1,2))
+          boxplot(outcomesdata()[[2]]$exp.coef., ylab = "HR", main = "Fig 1a. Distribution of HR under H1", cex.main = .65, 
+                  ylim = c(min(outcomesdata()[[2]]$exp.coef.),max(outcomesdata()[[2]]$exp.coef.)))
+          boxplot(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05], ylab = "HR (p < 0.05)", 
+                  main = "Fig 1b. Distribution of Significant HR under H1", cex.main = .65 )
+          
+        }
+
+```
+
+```{r scatterplot, echo=FALSE}
+        plot((outcomesdata()[[2]]$coef), log(outcomesdata()[[2]]$sctest.pvalue), xlab = "log(HR)", ylab = "log(p)", 
+             main = paste("Fig 2. Correlation Coefficient Estimate =", round(cor((outcomesdata()[[2]]$coef), log(outcomesdata()[[2]]$sctest.pvalue)), 2)),
+             cex.main = 1)
+        abline(h = log(0.05), col = 2, lty = 2)
+        axis(4, log(0.05), "p=0.05")
+
+```
+
+```{r scatterplot2, echo=FALSE}
+
+        plot(a2()$C_median / a2()$T_median, a2()$exp.coef., ylab = "Significant HR (p<0.05)", 
+             xlab = "Ratio of median survival time (control/treatment)",
+             main = paste("Fig 3. Correlation Coefficient Estimate =", round(cor(a2()$C_median / a2()$T_median, 
+                                                                          log(a2()$sctest.pvalue)), 2)), cex.main = 1)
+        abline(0, 1, col = 2)
+        abline(v = 1, col = 3) 
+
+```
+
+
+```{r scatterplot3, echo=FALSE}
+   
+ a2() %>%
+        ggplot(aes(x = T_median, y = C_median, colour = HR, shape = HR)) +
+        labs(title = "Fig 4. Median survival time between treatment and control stratified by (significant) HR",
+                 x = "Median of treatment group", y = "Median of control group") +
+        geom_point() +
+        theme(legend.position = "top") +
+        #  geom_smooth(method="lm",colour='black')+
+        geom_abline(slope = 1, intercept = 0, colour = "red") +
+        #  geom_text(aes(min(T_median)*1.4, max(C_median), label = paste('Int=',intercept,"Slope =", slope, "\n")))+
+        facet_wrap(~HR) 
+       
+ 
+      
+
+```
+
+
+
+
+```{r kmplot, echo=FALSE}
+   
+        if(I(NROW(outcomesdata()[[2]] %>% filter(sctest.pvalue<0.05 & ratiomed>1)) >0) ){  
+        index1 <- (1:dim(outcomesdata()[[2]])[1])[(outcomesdata()[[2]]$sctest.pvalue < 0.05) & (outcomesdata()[[2]]$coef < 0)]
+        index2 <- index1[(a2()$sctest.pvalue < 0.05) & (a2()$ratiomed > 1)  & (a2()$ratiomed == max(a2()$ratiomed))]
+        
+        data2 <- outcomesdata()[[1]][[index2[1]]]
+        
+        f1 <- survfit(Surv(data2$Obs_time, data2$censor) ~ data2$group)
+        f2 <- coxph(Surv(data2$Obs_time, data2$censor) ~ data2$group)
+        
+        # DT::datatable(data = data2,
+        #               options = list(pageLength = 10), 
+        #               rownames = FALSE)  
+        
+        plot(f1, col = 1:2, lty = 1:2, xlab = "time", ylab = "survival probability")
+        legend(10, 1, c("C", "T"), col = 1:2, lty = 1:2)
+        med.tmp <- round(summary(f1)$table[, "median"], 2)
+        title(paste("Fig 5. Estimated HR=", round(coef(summary(f2))[, "exp(coef)"], 2), "\n  Estimated median survival ratio=", round(med.tmp[1] / med.tmp[2], 2), "\n (", med.tmp[1], " in control versus ", med.tmp[2], " in treatment)", sep = ""),
+              cex.main = 1)
+        abline(h = 0.5, col = 3, lty = 2)
+        axis(4, 0.5, 0.5)
+        } else {print("")}
+        
+  
+```
+  
