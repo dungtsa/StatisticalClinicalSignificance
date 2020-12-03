@@ -30,19 +30,21 @@ ui <- fluidPage(
     # Inputs
     sidebarLayout(
         sidebarPanel(
-            numericInput("medH0",
-                         "Median Survival time (months) in Control Group:",
-                         min = 1,
-                         max = 120,
-                         step = 1,
-                         value = 5),
 
-            numericInput("medH1",
-                         "Median Survival time (months) in Treatment Group:",
-                         min = 1,
-                         max = 120,
-                         step = 1,
-                         value = 9),
+          numericInput("medH1",
+                       "Median Survival time (months) in Treatment Group:",
+                       min = 1,
+                       max = 120,
+                       step = 1,
+                       value = 9),
+          uiOutput("inputmedH0"),
+
+            # numericInput("medH0",
+            #              "Median Survival time (months) in Control Group:",
+            #              min = 1,
+            #              max = 120,
+            #              step = 1,
+            #              value = 5),
 
             numericInput("n.sim",
                         "number of simulations:",
@@ -101,46 +103,57 @@ ui <- fluidPage(
         # Show a plot of the generated distribution
         mainPanel(
           tags$style(type='text/css', '#overone {color: white;}'),
+          tags$style(type='text/css', '#txgtcon {color: white;}'),
 
-          h1("Summary"),
-          textOutput("summary"),
-          conditionalPanel( condition = 'output.overone == "true"',
-                            textOutput("testingoveronesummary")  ),
-          conditionalPanel( condition = 'output.overone != "true"',
-                            textOutput("testingoveronesummaryfalse")  ),
-          h2("Study design"),
-          textOutput("studydesign"),
 
-          h2("Statistical power"),
-          h3("Power and Type I error"),
-          textOutput("power"),
+          textOutput("txgtcon" ),
+          conditionalPanel( condition = 'output.txgtcon == "false"',
+                            textOutput("txgtcontext")
+          ),
+          conditionalPanel( condition = 'output.txgtcon == "true"',
 
-          h3("Distribution of HR"),
-          textOutput("Relationship"),
-          textOutput("HRdistribution"),
-          plotOutput("boxplots"),
+                            h1("Summary"),
+                            textOutput("summary"),
+                            conditionalPanel( condition = 'output.overone == "true"',
+                                              textOutput("testingoveronesummary")  ),
+                            conditionalPanel( condition = 'output.overone != "true"',
+                                              textOutput("testingoveronesummaryfalse")  ),
+                            h2("Study design"),
+                            textOutput("studydesign"),
 
-          h3("Relationship of HR and p value"),
-          textOutput("relationship"),
-          plotOutput("scatterplot"),
+                            h2("Statistical power"),
+                            h3("Power and Type I error"),
+                            textOutput("power"),
 
-          plotOutput("scatterplot2"),
+                            h3("Distribution of HR"),
+                            textOutput("Relationship"),
+                            textOutput("HRdistribution"),
+                            plotOutput("boxplots"),
 
-          h3("Relationship of median survival time between treatment and control stratified by HR"),
+                            h3("Relationship of HR and p value"),
+                            textOutput("relationship"),
+                            plotOutput("scatterplot"),
 
-          textOutput("relationshipratio"),
-          plotOutput("scatterplot3"),
-          br(), br(),
+                            plotOutput("scatterplot2"),
 
-          textOutput("overone" ),
+                            h3("Relationship of median survival time between treatment and control stratified by HR"),
 
-          conditionalPanel( condition = 'output.overone == "true"',
-                            textOutput("testingoverone"),
-                            plotOutput("kmplot")
+                            textOutput("relationshipratio"),
+                            plotOutput("scatterplot3"),
+                            br(), br(),
+
+                            textOutput("overone" ),
+
+                            conditionalPanel( condition = 'output.overone == "true"',
+                                              textOutput("testingoverone"),
+                                              plotOutput("kmplot")
                             ),
 
 
-          DT::dataTableOutput(outputId = "outputtable")
+                            DT::dataTableOutput(outputId = "outputtable")
+          ),
+
+
 
 
         )
@@ -149,8 +162,24 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
+  output$inputmedH0 <- renderUI({
+    numericInput("medH0",
+                 "Median Survival time (months) in Control Group:",
+                 min = 1,
+                 max = input$medH1,
+                 step = 1,
+                 value = input$medH1-5)
+  })
   #w <- Waiter$new()
+
+
+  output$txgtcon <- reactive({  I(input$medH0 < input$medH1)  })
+  output$txgtcontext <- renderText({
+    "Please make sure median survival time for the Treatment group is greater than the Control group."
+
+  })
+
+
 
       outcomesdata <- eventReactive(input$goButton, {
         input$goButton

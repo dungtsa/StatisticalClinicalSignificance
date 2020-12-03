@@ -75,19 +75,27 @@ output_type <- switch(opts_knit$get("rmarkdown.pandoc.to"),
  with one-sided 95% confidence interval (95% CI) of `r round(quantile(round(outcomesdata()[[2]]$HRnum,5), probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$HRnum,5), probs = c(0.975)),2)`. 
  The significant HR (log-rank p<0.05) ranges from 
  `r round(min(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05]),2)`
- to `r round(max(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05]),2) `.
- HR and p value are highly correlated with low HR in small p value spectrum (r = `r round(cor((outcomesdata()[[2]]$coef), log(outcomesdata()[[2]]$sctest.pvalue)), 2)` in logarithm scale).  
+ to `r round(max(outcomesdata()[[2]]$exp.coef.[outcomesdata()[[2]]$sctest.pvalue < 0.05]),2) ` (Figure 1b).
+ HR and p value are highly correlated (Figure 2) with low HR in small p value spectrum (r = `r round(cor((outcomesdata()[[2]]$coef), log(outcomesdata()[[2]]$sctest.pvalue)), 2)` in logarithm scale).  
  
- Distribution of median survival time (95% CI) is `r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.975)),2)` months with median value of `r input$medH0`  months in the control group and `r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.025)),2)`- `r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.975)),2)` months with median value of `r input$medH1` months in the treatment group.
+ Distribution of median survival time (95% CI) is `r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$C_median,5) , probs = c(0.975)),2)` months with median value of `r input$medH0`  months in the control group and `r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.025)),2)`
+-`r round(quantile(round(outcomesdata()[[2]]$T_median,5), probs = c(0.975)),2)` months with median value of `r input$medH1` months in the treatment group.
  The 95% CI of median survival ratio is `r round(quantile(round(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median,5), probs = c(0.025)),2)`-`r round(quantile(round(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median,5), probs = c(0.975)),2)`, with median value of `r round(summary(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median)[3],2)`. For significant cases with log-rank p < 0.05, the range of median survival time of control and treatment groups and median survival ratio is `r round(min(outcomesdata()[[2]]$C_median),2)` to `r round(max(outcomesdata()[[2]]$C_median),2)` months,
  `r round(min(outcomesdata()[[2]]$T_median),2)` to `r round(max(outcomesdata()[[2]]$T_median),2)` months, and 
  `r round(min(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median),2)`
  to `r round(max(outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median),2)`, respectively.
  Median survival ratio is also positively correlated with
- HR, with a lower median survival ratio corresponds to a lower HR ( r =
+ HR (Figure 3), with a lower median survival ratio corresponds to a lower HR ( r =
  `r round(cor( outcomesdata()[[2]]$C_median/outcomesdata()[[2]]$T_median, outcomesdata()[[2]]$HRnum), 2)`).
-
-`r ifelse(I(NROW(outcomesdata()[[2]] %>% filter(sctest.pvalue<0.05 & ratiomed>1)) > 0), paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Close examination indicates most cases show \n treatment delay effect", sep = "")  , if(numberoutliers()>0){         paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Yet none are significant at the alpha = ",1-as.numeric(input$con.CI)," level", sep = "")  } else {paste(" ", sep = "")})`
+ 
+ The statisically significant HR is grouped in the following increasing ordered categories: 
+     `r  paste(names(table(a2()$HR))," ", unname(round(table(a2()$HR)/sum(table(a2()$HR))*100, 2)), "%",sep='', collapse = ', ') `
+ For HR < 0.5, the median survival time in the treatment group is always greater than
+ the control group as shown in Figure 4 with all data points below the 45 degree red-color line 
+ (i.e., median survival ratio < 1). As HR exceeds 0.5, the number of intances in which the median survival 
+ ratio > 1 starts to increase.
+              
+`r ifelse(I(NROW(outcomesdata()[[2]] %>% filter(sctest.pvalue<0.05 & ratiomed>1)) > 0), paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Close examination indicates most cases show \n treatment delay effect (Figure 5)", sep = "")  , if(numberoutliers()>0){         paste("However, there are ",numberoutliers()," outliers (",percentoutliers(), "%) with opposite trend with a HR < 1 but \n with a median survival ratio > 1. Yet none are significant at the alpha = ",1-as.numeric(input$con.CI)," level", sep = "")  } else {paste(" ", sep = "")})`
 
 
  
@@ -133,7 +141,6 @@ output_type <- switch(opts_knit$get("rmarkdown.pandoc.to"),
 
 ```
 
-
 ```{r scatterplot3, echo=FALSE}
    
  a2() %>%
@@ -151,9 +158,6 @@ output_type <- switch(opts_knit$get("rmarkdown.pandoc.to"),
       
 
 ```
-
-
-
 
 ```{r kmplot, echo=FALSE}
    
