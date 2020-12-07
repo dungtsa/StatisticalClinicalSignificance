@@ -35,3 +35,5 @@ require("LongRankPower")
 Log_Rank_Power()
 ```
 
+Snapshot of shiny app: initial 
+![snapshot of shiny app: initial](inst/img/shiny1.png)
