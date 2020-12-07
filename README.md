@@ -32,6 +32,7 @@ devtools::install_github("dungtsa/Clinical-Significance-and-Statistical-Signific
 
 ```r
 require("LongRankPower")
+
 Log_Rank_Power()
 ```
 
