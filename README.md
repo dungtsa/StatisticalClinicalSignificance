@@ -25,7 +25,7 @@ Simply run the following from an R console:
 ```r
 if (!require("devtools"))
   install.packages("devtools")
-devtools::install_github("dungtsa/Clinical-Significance-and-Statistical-Significance",force = TRUE)
+devtools::install_github("dungtsa/StatisticalClinicalSignificance",force = TRUE)
 ```
 
 ## Getting Started
