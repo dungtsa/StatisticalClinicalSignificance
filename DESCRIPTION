@@ -1,4 +1,4 @@
-Package: LogRankPower
+Package: StatisticalClinicalSignificance
 Type: Package
 Title: A shiny app for two group log rank power analysis
 Version: 0.1.0
